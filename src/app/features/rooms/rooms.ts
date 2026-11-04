@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -16,7 +16,8 @@ import {
   findRooms,
   readRoomSearch,
   searchError,
-  stayNights
+  stayNights,
+  type Room
 } from '../../../data/room';
 
 @Component({
@@ -57,7 +58,7 @@ readonly totalPages = computed(() =>
 readonly paginatedRooms = computed(() => {
   const start = (this.currentPage() - 1) * this.pageSize;
 
-  return this.results().slice(start, start + this.pageSize);
+  return this.sortedRooms().slice(start, start + this.pageSize);
 });
 
 readonly pageNumbers = computed(() => {
@@ -86,6 +87,71 @@ readonly lastResult = computed(() =>
     this.results().length
   )
 );
+
+private sortWorker?: Worker;
+private latestSortRequest = 0;
+
+readonly sorting = signal(false);
+readonly sortedRooms = signal<Room[]>([]);
+
+private initializeSortWorker(): void {
+  // Also prevents worker creation during server-side rendering.
+  if (typeof Worker === 'undefined') {
+    return;
+  }
+
+  this.sortWorker = new Worker(
+    new URL('./hotel-sort.worker', import.meta.url),
+    { type: 'module' }
+  );
+
+this.sortWorker.onmessage = ({ data }) => {
+  console.log('[Rooms] Received worker result', data);
+
+  if (data.requestId !== this.latestSortRequest) {
+    return;
+  }
+
+  this.sortedRooms.set(data.rooms);
+  this.sorting.set(false);
+};
+
+  this.sortWorker.onerror = () => {
+    this.sorting.set(false);
+    this.error.set('Unable to sort rooms. Please try again.');
+  };
+}
+
+
+ngOnInit(): void {
+  this.initializeSortWorker();
+}
+
+
+sortByPrice(rooms: Room[], direction: 'asc' | 'desc'): void {
+  const requestId = ++this.latestSortRequest;
+
+  this.currentPage.set(1);
+
+  if (!this.sortWorker) {
+    this.sortedRooms.set(
+      [...rooms].sort((a, b) =>
+        direction === 'asc'
+          ? a.price - b.price
+          : b.price - a.price
+      )
+    );
+    return;
+  }
+
+  this.sorting.set(true);
+
+  this.sortWorker.postMessage({
+    requestId,
+    rooms,
+    direction,
+  });
+}
 
 goToPage(page: number): void {
   if (
@@ -118,7 +184,12 @@ search(): void {
     return;
   }
 
-  this.applied.set({ ...this.filters });
+  // Keep your existing applied-filters update here.
+
+  const matchingRooms = findRooms(this.filters);
+
+  // Send all matching rooms to the worker BEFORE pagination.
+  this.sortByPrice(matchingRooms, 'asc');
 }
 
   destinationName(destinationId: string): string {
@@ -175,4 +246,8 @@ search(): void {
   private errorMessage(error: unknown, fallback: string): string {
     return error instanceof Error ? error.message : fallback;
   }
+
+  ngOnDestroy(): void {
+  this.sortWorker?.terminate();
+}
 }
