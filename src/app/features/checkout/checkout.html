@@ -1,0 +1,251 @@
+<main class="checkout-page">
+  @if (confirmation(); as booking) {
+    <section class="checkout-success" role="status">
+      <span class="checkout-success-icon">✓</span>
+      <h1>Demo booking confirmed!</h1>
+
+      <p>{{ booking.roomName }}</p>
+      <p>{{ booking.checkIn }} → {{ booking.checkOut }}</p>
+      <p>Reference: <strong>{{ booking.id }}</strong></p>
+
+      <p>
+        Simulated total:
+        {{ booking.total | currency:'INR':'symbol':'1.0-0' }}
+      </p>
+
+      <p class="checkout-notice">
+        No money was charged, no real room was reserved,
+        and no confirmation email was sent.
+      </p>
+
+      <a class="checkout-primary" routerLink="/dashboard">
+        Explore destinations
+      </a>
+    </section>
+  } @else if (summary; as details) {
+    <a
+      class="checkout-back"
+      [routerLink]="['/rooms', roomId]"
+      [queryParams]="query"
+    >
+      ← Back
+    </a>
+
+    <h1>Confirm and pay</h1>
+
+    <div class="checkout-layout">
+      <section class="checkout-main">
+        <h2>Your trip</h2>
+
+        <div class="trip-details">
+          <div class="trip-detail">
+            <strong>Dates</strong>
+            <span>{{ search.checkIn }} → {{ search.checkOut }}</span>
+
+            <a
+              [routerLink]="['/rooms', roomId]"
+              [queryParams]="query"
+              aria-label="Edit travel dates"
+            >
+              Edit
+            </a>
+          </div>
+
+          <div class="trip-detail">
+            <strong>Guests</strong>
+            <span>{{ search.guests }} guest(s)</span>
+
+            <a
+              [routerLink]="['/rooms', roomId]"
+              [queryParams]="query"
+              aria-label="Edit guest count"
+            >
+              Edit
+            </a>
+          </div>
+        </div>
+
+        @if (details.error) {
+          <p class="checkout-error" role="alert">
+            {{ details.error }}
+          </p>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="pay()" novalidate>
+          <fieldset [disabled]="processing()">
+            <legend>Guest details</legend>
+
+            <div class="guest-fields">
+              <label>
+                Full name
+                <input
+                  formControlName="name"
+                  autocomplete="name"
+                  placeholder="Name of the lead guest"
+                >
+              </label>
+
+              <label>
+                Email address
+                <input
+                  type="email"
+                  formControlName="email"
+                  autocomplete="email"
+                  placeholder="you@example.com"
+                >
+              </label>
+            </div>
+
+            <h2>Pay with</h2>
+
+            <div class="payment-tabs">
+              <label
+                [class.active]="form.controls.paymentMethod.value === 'card'"
+              >
+                <input
+                  type="radio"
+                  formControlName="paymentMethod"
+                  value="card"
+                >
+                Credit card
+              </label>
+
+              <label
+                [class.active]="form.controls.paymentMethod.value === 'paypal'"
+              >
+                <input
+                  type="radio"
+                  formControlName="paymentMethod"
+                  value="paypal"
+                >
+                PayPal
+              </label>
+
+              <label
+                [class.active]="form.controls.paymentMethod.value === 'googlepay'"
+              >
+                <input
+                  type="radio"
+                  formControlName="paymentMethod"
+                  value="googlepay"
+                >
+                Google Pay
+              </label>
+            </div>
+
+            @if (form.controls.paymentMethod.value === 'card') {
+              <div class="demo-payment-box">
+                <span class="demo-badge">DEMO CARD</span>
+                <strong class="demo-card-number">
+                  4242 4242 4242 4242
+                </strong>
+                <span>Test traveler · Expires 12/30</span>
+              </div>
+            } @else {
+              <div class="demo-payment-box">
+                <strong>
+                  {{
+                    form.controls.paymentMethod.value === 'paypal'
+                      ? 'PayPal'
+                      : 'Google Pay'
+                  }}
+                  simulation
+                </strong>
+                <span>No external account connection is required.</span>
+              </div>
+            }
+
+            <p class="checkout-notice">
+              Demo payment only. No real card information is collected.
+              Every payment method uses the same test simulator.
+            </p>
+
+            <label>
+              Test payment outcome
+              <select formControlName="outcome">
+                <option value="success">Successful payment</option>
+                <option value="declined">Declined payment</option>
+              </select>
+            </label>
+
+            <label class="checkout-checkbox">
+              <input type="checkbox" formControlName="agree">
+              I understand that this is a simulated booking and payment.
+            </label>
+
+            <button
+              class="checkout-primary checkout-pay-button"
+              type="submit"
+              [disabled]="!!details.error"
+            >
+              {{
+                processing()
+                  ? 'Processing demo payment…'
+                  : 'Confirm and pay — demo'
+              }}
+            </button>
+          </fieldset>
+
+          @if (processing()) {
+            <p class="checkout-feedback" role="status">
+              Please wait while your demo payment is processed.
+            </p>
+          }
+
+          @if (error()) {
+            <p class="checkout-error" role="alert">{{ error() }}</p>
+          }
+        </form>
+      </section>
+
+      <aside class="checkout-summary" aria-label="Booking summary">
+        <div class="checkout-room">
+          <img
+            [src]="details.room.image"
+            [alt]="details.room.name"
+          >
+
+          <div>
+            <p class="checkout-muted">{{ details.room.location }}</p>
+            <h3>{{ details.room.name }}</h3>
+            <p>Up to {{ details.room.maxGuests }} guests</p>
+            <p>★ {{ details.room.rating }}</p>
+          </div>
+        </div>
+
+        <h2>Price details</h2>
+
+        <div class="checkout-price-row">
+          <span>
+            {{ details.room.price | currency:'INR':'symbol':'1.0-0' }}
+            × {{ details.nights }} night(s)
+          </span>
+          <strong>
+            {{ details.subtotal | currency:'INR':'symbol':'1.0-0' }}
+          </strong>
+        </div>
+
+        <div class="checkout-price-row">
+          <span>Illustrative taxes · 12%</span>
+          <strong>
+            {{ details.taxes | currency:'INR':'symbol':'1.0-0' }}
+          </strong>
+        </div>
+
+        <div class="checkout-price-row checkout-total">
+          <span>Total (INR)</span>
+          <strong>
+            {{ details.total | currency:'INR':'symbol':'1.0-0' }}
+          </strong>
+        </div>
+
+        <p class="checkout-footnote">
+          Sample pricing. No real reservation or charge.
+        </p>
+      </aside>
+    </div>
+  } @else {
+    <h1>Room not found</h1>
+    <a routerLink="/rooms">Return to room results</a>
+  }
+</main>

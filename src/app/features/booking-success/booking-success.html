@@ -1,0 +1,102 @@
+<main class="payment-success-page">
+  @if (booking(); as reservation) {
+    <section aria-labelledby="confirmation-title">
+      <div class="success-illustration" aria-hidden="true">🧳</div>
+      <span class="success-badge">✓ DEMO PAYMENT SUCCESSFUL</span>
+
+      <h1 id="confirmation-title">All done, your stay is confirmed!</h1>
+
+      <p class="success-subtitle">
+        {{ reservation.roomName }}
+      </p>
+
+      <div class="success-trip-details">
+        <p>
+          <span>Dates</span>
+          <strong>
+            {{ reservation.checkIn | date:'mediumDate' }}
+            →
+            {{ reservation.checkOut | date:'mediumDate' }}
+          </strong>
+        </p>
+
+        @if (room(); as selectedRoom) {
+          <p>
+            <span>Location</span>
+            <strong>{{ selectedRoom.location }}</strong>
+          </p>
+        }
+
+        <p>
+          <span>Guests</span>
+          <strong>{{ reservation.guests }}</strong>
+        </p>
+
+        <p>
+          <span>Lead guest</span>
+          <strong>{{ reservation.guest.name }}</strong>
+        </p>
+      </div>
+
+      <div class="success-payment-details">
+        <p>
+          <span>Simulated payment (INR)</span>
+          <strong>
+            {{ reservation.total | currency:'INR':'symbol':'1.0-0' }}
+          </strong>
+        </p>
+
+        <p>
+          <span>Confirmation number</span>
+          <strong class="confirmation-code">{{ reservation.id }}</strong>
+        </p>
+
+        <p>
+          <span>Status</span>
+          <strong>{{ reservation.status }}</strong>
+        </p>
+      </div>
+
+      <article class="success-room-card">
+        @if (room(); as selectedRoom) {
+          <img
+            [src]="selectedRoom.image"
+            [alt]="reservation.roomName"
+          >
+        }
+
+        <div>
+          <span class="success-room-label">YOUR SELECTED STAY</span>
+          <h2>{{ reservation.roomName }}</h2>
+
+          <p>{{ reservation.guests }} guest(s)</p>
+
+          @if (room(); as selectedRoom) {
+            <p>★ {{ selectedRoom.rating }}</p>
+          }
+        </div>
+      </article>
+
+      <p class="success-demo-notice">
+        This is a demo confirmation. No money was charged,
+        no real room was reserved, and no email was sent.
+      </p>
+
+      <div class="success-actions">
+        <a class="success-primary" routerLink="/dashboard">
+          Explore more destinations
+        </a>
+      </div>
+    </section>
+  } @else {
+    <section class="success-not-found">
+      <h1>Confirmation not found</h1>
+      <p>
+        {{ error() || 'This demo booking is not saved in this browser.' }}
+      </p>
+      <a class="success-primary" routerLink="/dashboard">
+        Back to destinations
+      </a>
+    </section>
+  }
+</main>

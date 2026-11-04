@@ -1,0 +1,61 @@
+.admin-page {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 24px;
+  color: #203b3a;
+  font-family: Arial, sans-serif;
+}
+
+.admin-form,
+.admin-list article {
+  border: 1px solid #dce5e2;
+  border-radius: 14px;
+  padding: 24px;
+  margin-top: 20px;
+  background: #f8fbfa;
+}
+
+.admin-form fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-form label {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.admin-form input:not([type="checkbox"]) {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border: 1px solid #b9cbc5;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.admin-page button {
+  padding: 10px 16px;
+  margin: 4px;
+  border: 0;
+  border-radius: 8px;
+  background: #216b60;
+  color: white;
+  cursor: pointer;
+}
+
+.admin-page button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.admin-page [role="alert"] {
+  color: #b42318;
+}
+
+.admin-page [role="status"] {
+  color: #216b60;
+}

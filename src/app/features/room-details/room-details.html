@@ -1,0 +1,330 @@
+<main class="room-detail-page">
+  <a
+    class="detail-back"
+    routerLink="/rooms"
+    [queryParams]="query()"
+  >
+    ← Back to room results
+  </a>
+
+  @if (room(); as selectedRoom) {
+    <header class="detail-heading">
+      <span class="detail-eyebrow">
+        {{ bookingReview ? 'BOOKING REVIEW' : selectedRoom.location }}
+      </span>
+
+      <h1>{{ selectedRoom.name }}</h1>
+
+      <p>
+        ★ {{ selectedRoom.rating }}
+        · Up to {{ selectedRoom.maxGuests }} guests
+      </p>
+    </header>
+
+    @if (!bookingReview) {
+      <section class="room-photo-layout" aria-label="Room photos">
+        <img
+          class="room-large-photo"
+          [src]="selectedPhoto()"
+          [alt]="selectedRoom.name"
+        >
+
+        <div class="room-photo-thumbnails">
+          @for (photo of photos(); track photo; let i = $index) {
+            <button
+              type="button"
+              [class.selected]="activePhoto() === i"
+              [attr.aria-label]="'Show room photo ' + (i + 1)"
+              [attr.aria-pressed]="activePhoto() === i"
+              (click)="activePhoto.set(i)"
+            >
+              <img
+                [src]="photo"
+                [alt]="selectedRoom.name + ' — photo ' + (i + 1)"
+                loading="lazy"
+              >
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    <div class="room-detail-columns">
+      <section class="room-description">
+        @if (bookingReview) {
+          <h2>Review your stay</h2>
+
+          <img
+            class="booking-room-image"
+            [src]="selectedRoom.image"
+            [alt]="selectedRoom.name"
+          >
+
+          <p>{{ selectedRoom.location }}</p>
+          <p>
+            {{ search().checkIn }} → {{ search().checkOut }}
+          </p>
+          <p>
+            {{ nights() }} night(s) · {{ search().guests }} guest(s)
+          </p>
+
+          <a
+            class="detail-back"
+            [routerLink]="['/rooms', selectedRoom.id]"
+            [queryParams]="query()"
+          >
+            Edit your selection
+          </a>
+
+          <p class="detail-note">
+            This is the booking-review step. Guest details and payment
+            will be connected next. No room has been reserved.
+          </p>
+        } @else {
+          <h2>About this room</h2>
+
+         <p>
+  {{
+    selectedRoom.description ||
+      'Enjoy a comfortable stay with a private bathroom, welcoming interiors, and the amenities listed below.'
+  }}
+</p>
+
+          <h2>What this room offers</h2>
+
+          <div class="detail-amenities">
+            @for (amenity of selectedRoom.amenities; track amenity) {
+              <span>✓ {{ amenity }}</span>
+            }
+          </div>
+
+          <p class="detail-note">
+            Sample room catalog. Gallery photos and availability
+            are illustrative.
+          </p>
+        }
+
+        @if (!bookingReview) {
+  <section class="reviews-section" aria-labelledby="reviews-title">
+    <div class="reviews-heading">
+      <h2 id="reviews-title">Guest reviews</h2>
+
+      @if (averageReviewRating(); as average) {
+        <span class="reviews-summary">
+          ★ {{ average }} / 5
+          · {{ roomReviews().length }} review(s)
+        </span>
+      }
+    </div>
+
+    <p class="detail-note">
+      Demo reviews are saved on this browser.
+      They are not verified booking reviews.
+    </p>
+
+    @if (reviewsReady()) {
+      <div class="review-list">
+        @for (review of roomReviews(); track review.id) {
+          <article class="review-card">
+            <header class="review-card-heading">
+              <div>
+                <h3>{{ review.author }}</h3>
+                <time [attr.datetime]="review.createdAt">
+                  {{ review.createdAt | date:'mediumDate' }}
+                </time>
+              </div>
+
+              <span
+                class="review-rating"
+                [attr.aria-label]="review.rating + ' out of 5 stars'"
+              >
+                ★ {{ review.rating }} / 5
+              </span>
+            </header>
+
+            <p class="review-comment">{{ review.comment }}</p>
+          </article>
+        } @empty {
+          <p class="reviews-empty">
+            No reviews yet. Be the first to share your experience.
+          </p>
+        }
+      </div>
+
+      <form
+        class="review-form"
+        (ngSubmit)="submitReview()"
+        novalidate
+      >
+        <h3>Write a review</h3>
+
+        <div class="review-form-row">
+          <label>
+            Your name
+
+            <input
+              type="text"
+              name="reviewAuthor"
+              [(ngModel)]="reviewAuthor"
+              autocomplete="name"
+              maxlength="60"
+              required
+            >
+          </label>
+
+          <label>
+            Rating
+
+            <select
+              name="reviewRating"
+              [(ngModel)]="reviewRating"
+              required
+            >
+              <option [ngValue]="5">5 — Excellent</option>
+              <option [ngValue]="4">4 — Good</option>
+              <option [ngValue]="3">3 — Average</option>
+              <option [ngValue]="2">2 — Poor</option>
+              <option [ngValue]="1">1 — Very poor</option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          Your experience
+
+          <textarea
+            name="reviewComment"
+            [(ngModel)]="reviewComment"
+            rows="4"
+            minlength="10"
+            maxlength="1000"
+            placeholder="What did you like about your stay?"
+            aria-describedby="review-help"
+            required
+          ></textarea>
+        </label>
+
+        <small id="review-help">
+          10–1,000 characters · {{ reviewComment.length }}/1,000
+        </small>
+
+        <button type="submit" class="detail-primary">
+          Submit review
+        </button>
+      </form>
+    }
+
+    @if (reviewError()) {
+      <p class="detail-error" role="alert">
+        {{ reviewError() }}
+      </p>
+    }
+
+    @if (reviewMessage()) {
+      <p class="review-success" role="status">
+        {{ reviewMessage() }}
+      </p>
+    }
+  </section>
+}
+      </section>
+
+      <aside class="room-reservation-card" aria-label="Stay summary">
+        <p class="detail-nightly-price">
+          <strong>
+            {{
+              selectedRoom.price
+                | currency:'INR':'symbol':'1.0-0'
+            }}
+          </strong>
+          / night
+        </p>
+
+        @if (!bookingReview) {
+          <div class="detail-date-fields">
+            <label>
+              Check in
+              <input
+                type="date"
+                [min]="today"
+                [ngModel]="search().checkIn"
+                (ngModelChange)="updateSearch('checkIn', $event)"
+              >
+            </label>
+
+            <label>
+              Check out
+              <input
+                type="date"
+                [min]="search().checkIn"
+                [ngModel]="search().checkOut"
+                (ngModelChange)="updateSearch('checkOut', $event)"
+              >
+            </label>
+
+            <label class="detail-guests">
+              Guests
+              <select
+                [ngModel]="search().guests"
+                (ngModelChange)="updateSearch('guests', $event)"
+              >
+                @for (count of [1, 2, 3, 4, 5, 6]; track count) {
+                  <option [ngValue]="count">{{ count }}</option>
+                }
+              </select>
+            </label>
+          </div>
+        }
+
+        @if (availabilityError()) {
+          <p class="detail-error" role="alert">
+            {{ availabilityError() }}
+          </p>
+        } @else {
+          <p class="detail-available" role="status">
+            Available for your selected dates
+          </p>
+
+          <div class="detail-price-lines">
+            <p>
+              <span>{{ nights() }} night(s)</span>
+              <strong>
+                {{ subtotal() | currency:'INR':'symbol':'1.0-0' }}
+              </strong>
+            </p>
+
+            <p>
+              <span>Illustrative taxes · 12%</span>
+              <strong>
+                {{ taxes() | currency:'INR':'symbol':'1.0-0' }}
+              </strong>
+            </p>
+
+            <p class="detail-total">
+              <span>Total</span>
+              <strong>
+                {{ total() | currency:'INR':'symbol':'1.0-0' }}
+              </strong>
+            </p>
+          </div>
+        }
+
+        @if (!bookingReview) {
+          <button
+            type="button"
+            class="detail-primary"
+            [disabled]="!!availabilityError()"
+            (click)="proceedToBooking()"
+          >
+            Continue to booking →
+          </button>
+
+          <p class="detail-note">You will review your stay next.</p>
+        }
+      </aside>
+    </div>
+  } @else {
+    <h1>Room not found</h1>
+    <p>Please return to the results and select another room.</p>
+  }
+</main>

@@ -1,0 +1,379 @@
+<main class="rooms-page">
+  <header class="page-heading">
+    <a class="back-link" routerLink="/dashboard">
+      ← Back to destinations
+    </a>
+
+    <h1>Find your perfect stay</h1>
+    <p>Explore rooms, compare prices, and plan your next trip.</p>
+  </header>
+
+  <div class="search-layout">
+    <aside class="filter-sidebar" aria-labelledby="filter-title">
+      <form class="search-form" (ngSubmit)="search()" novalidate>
+        <h2 id="filter-title">Search & filters</h2>
+
+        <label>
+          Destination
+
+          <select
+            name="destination"
+            [(ngModel)]="filters.destination"
+          >
+            <option value="">All destinations</option>
+
+            @for (destination of destinations; track destination.id) {
+              <option [value]="destination.id">
+                {{ destination.name }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Check in
+
+          <input
+            type="date"
+            name="checkIn"
+            [(ngModel)]="filters.checkIn"
+            [min]="today"
+            required
+          >
+        </label>
+
+        <label>
+          Check out
+
+          <input
+            type="date"
+            name="checkOut"
+            [(ngModel)]="filters.checkOut"
+            [min]="filters.checkIn"
+            required
+          >
+        </label>
+
+        <label>
+          Guests
+
+          <input
+            type="number"
+            name="guests"
+            [(ngModel)]="filters.guests"
+            min="1"
+            max="6"
+            required
+          >
+        </label>
+
+        <label>
+          Maximum price per night ₹
+
+          <input
+            type="number"
+            name="maxPrice"
+            [(ngModel)]="filters.maxPrice"
+            min="1"
+            required
+          >
+        </label>
+
+        <label class="checkbox-field">
+          <input
+            type="checkbox"
+            name="breakfast"
+            [(ngModel)]="filters.breakfast"
+          >
+          Breakfast included
+        </label>
+
+        <button class="primary-button" type="submit">
+          Search rooms
+        </button>
+
+        <button
+          class="secondary-button"
+          type="button"
+          [disabled]="!!error()"
+          (click)="saveCurrentSearch()"
+        >
+          ♡ Save last run search
+        </button>
+      </form>
+    </aside>
+
+    <section class="results-panel" aria-labelledby="results-title">
+      <header class="results-heading">
+        <div>
+          <h2 id="results-title">
+            Stays in {{ destinationName(applied().destination) }}
+          </h2>
+
+          @if (!error()) {
+            <p role="status" aria-live="polite">
+              {{ results().length }} rooms found
+              · {{ nights() }} night(s)
+              · {{ applied().guests }} guest(s)
+            </p>
+          }
+        </div>
+
+        @if (!error() && results().length > 0) {
+          <span class="result-range">
+            Showing {{ firstResult() }}–{{ lastResult() }}
+          </span>
+        }
+      </header>
+
+      @if (error()) {
+        <p class="error" role="alert">
+          {{ error() }}
+        </p>
+      } @else {
+        <div class="room-list">
+          @for (room of paginatedRooms(); track room.id) {
+            <article class="room-card">
+              <a
+                class="room-image-link"
+                [routerLink]="['/rooms', room.id]"
+                [queryParams]="applied()"
+                [attr.aria-label]="'View ' + room.name"
+              >
+                <img
+                  [src]="room.image"
+                  [alt]="room.name"
+                  loading="lazy"
+                >
+              </a>
+
+              <div class="room-content">
+                <p class="muted">
+                  {{ room.location }}
+                </p>
+
+                <h3>
+                  <a
+                    [routerLink]="['/rooms', room.id]"
+                    [queryParams]="applied()"
+                  >
+                    {{ room.name }}
+                  </a>
+                </h3>
+
+                <p class="room-capacity">
+                  Up to {{ room.maxGuests }} guests
+                </p>
+
+                <div class="amenities">
+                  @for (amenity of room.amenities; track amenity) {
+                    <span>✓ {{ amenity }}</span>
+                  }
+                </div>
+
+                <p class="room-rating">
+                  <span aria-hidden="true">★</span>
+                  {{ room.rating }}
+                  <span class="muted">Guest rating</span>
+                </p>
+              </div>
+
+              <div class="room-price">
+                <p class="stay-total">
+                  {{
+                    room.price * nights()
+                      | currency:'INR':'symbol':'1.0-0'
+                  }}
+                  for the stay
+                </p>
+
+                <p class="nightly-price">
+                  <strong>
+                    {{
+                      room.price
+                        | currency:'INR':'symbol':'1.0-0'
+                    }}
+                  </strong>
+                  <span>/ night</span>
+                </p>
+
+                <p class="muted">Before taxes</p>
+
+                <a
+                  class="primary-button"
+                  [routerLink]="['/rooms', room.id]"
+                  [queryParams]="applied()"
+                >
+                  View room →
+                </a>
+              </div>
+            </article>
+          } @empty {
+            <div class="empty-state">
+              <h3>No rooms match your search</h3>
+
+              <p>
+                Try different dates, fewer guests, or a higher budget.
+              </p>
+            </div>
+          }
+        </div>
+
+        @if (totalPages() > 1) {
+          <nav class="pagination" aria-label="Room results pages">
+            <button
+              type="button"
+              [disabled]="currentPage() === 1"
+              (click)="goToPage(currentPage() - 1)"
+              aria-label="Previous page"
+            >
+              ‹
+            </button>
+
+            @if (pageNumbers()[0] > 1) {
+              <button
+                type="button"
+                (click)="goToPage(1)"
+                aria-label="Go to page 1"
+              >
+                1
+              </button>
+
+              @if (pageNumbers()[0] > 2) {
+                <span class="pagination-gap" aria-hidden="true">
+                  …
+                </span>
+              }
+            }
+
+            @for (page of pageNumbers(); track page) {
+              <button
+                type="button"
+                [class.active]="currentPage() === page"
+                [attr.aria-current]="
+                  currentPage() === page ? 'page' : null
+                "
+                [attr.aria-label]="'Go to page ' + page"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+
+            @if (
+              pageNumbers()[pageNumbers().length - 1] < totalPages()
+            ) {
+              @if (
+                pageNumbers()[pageNumbers().length - 1] <
+                totalPages() - 1
+              ) {
+                <span class="pagination-gap" aria-hidden="true">
+                  …
+                </span>
+              }
+
+              <button
+                type="button"
+                (click)="goToPage(totalPages())"
+                [attr.aria-label]="'Go to page ' + totalPages()"
+              >
+                {{ totalPages() }}
+              </button>
+            }
+
+            <button
+              type="button"
+              [disabled]="currentPage() === totalPages()"
+              (click)="goToPage(currentPage() + 1)"
+              aria-label="Next page"
+            >
+              ›
+            </button>
+          </nav>
+        }
+      }
+    </section>
+  </div>
+
+  <section
+    class="saved-search-section"
+    aria-labelledby="saved-search-title"
+  >
+    <div class="saved-search-heading">
+      <h2 id="saved-search-title">Saved searches</h2>
+
+      <button
+        type="button"
+        class="saved-search-save"
+        [disabled]="!!error()"
+        (click)="saveCurrentSearch()"
+      >
+        ♡ Save last run search
+      </button>
+    </div>
+
+    @if (savedSearchMessage()) {
+      <p class="saved-search-message" role="status">
+        {{ savedSearchMessage() }}
+      </p>
+    }
+
+    <div class="saved-search-list">
+      @for (saved of savedSearches(); track saved.id) {
+        <article class="saved-search-card">
+          <div>
+            <h3>
+              {{ destinationName(saved.criteria.destination) }}
+            </h3>
+
+            <p>
+              {{ saved.criteria.checkIn }}
+              →
+              {{ saved.criteria.checkOut }}
+            </p>
+
+            <p>
+              {{ saved.criteria.guests }} guest(s)
+              · Maximum
+              {{
+                saved.criteria.maxPrice
+                  | currency:'INR':'symbol':'1.0-0'
+              }}
+              / night
+            </p>
+
+            @if (saved.criteria.breakfast) {
+              <small>Breakfast included</small>
+            }
+          </div>
+
+          <div class="saved-search-actions">
+            <button
+              type="button"
+              class="saved-search-run"
+              (click)="runSavedSearch(saved)"
+            >
+              Run again
+            </button>
+
+            <button
+              type="button"
+              class="saved-search-delete"
+              [attr.aria-label]="
+                'Delete saved search for ' +
+                destinationName(saved.criteria.destination)
+              "
+              (click)="deleteSavedSearch(saved.id)"
+            >
+              Delete
+            </button>
+          </div>
+        </article>
+      } @empty {
+        <p class="saved-search-empty">
+          Run a search, then save it to find it here later.
+        </p>
+      }
+    </div>
+  </section>
+</main>

@@ -1,0 +1,135 @@
+<main class="auth-page">
+  <section class="auth-card" aria-labelledby="login-title">
+    <a class="brand" routerLink="/">Wayfarer.</a>
+
+    <h1 id="login-title">Welcome back</h1>
+    <p class="subtitle">Sign in to plan your next escape.</p>
+<div class="auth-options">
+  <button
+    type="button"
+    class="social-button"
+    [disabled]="isLoading()"
+    (click)="socialLogin('google')"
+  >
+    <span class="provider-icon google-icon" aria-hidden="true">
+      G
+    </span>
+
+    Continue with Google
+  </button>
+
+  <button
+    type="button"
+    class="social-button"
+    [disabled]="isLoading()"
+    (click)="socialLogin('facebook')"
+  >
+    <span class="provider-icon facebook-icon" aria-hidden="true">
+      f
+    </span>
+
+    Continue with Facebook
+  </button>
+</div>
+
+<div class="auth-divider">
+  <span>or sign in with email</span>
+</div>
+    <form
+      [formGroup]="loginForm"
+      (ngSubmit)="submit()"
+      novalidate
+    >
+      <div class="field">
+        <label for="email">Email address</label>
+
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          autocomplete="username"
+          placeholder="you@example.com"
+          [attr.aria-invalid]="
+            loginForm.controls.email.touched &&
+            loginForm.controls.email.invalid
+          "
+          aria-describedby="email-error"
+        >
+
+        <div id="email-error">
+          @if (
+            loginForm.controls.email.touched &&
+            loginForm.controls.email.invalid
+          ) {
+            <small class="error">
+              Enter a valid email address.
+            </small>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+
+        <div class="password-field">
+          <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="Enter your password"
+              [attr.aria-invalid]="
+                loginForm.controls.password.touched &&
+                loginForm.controls.password.invalid
+              "
+              aria-describedby="password-error"
+          >
+
+          <button
+            type="button"
+            class="toggle"
+            [attr.aria-label]="
+              showPassword() ? 'Hide password' : 'Show password'
+            "
+            [attr.aria-pressed]="showPassword()"
+            (click)="showPassword.set(!showPassword())"
+          >
+            {{ showPassword() ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+
+        <div id="password-error">
+          @if (
+            loginForm.controls.password.touched &&
+            loginForm.controls.password.invalid
+          ) {
+            <small class="error">Password is required.</small>
+          }
+        </div>
+      </div>
+
+     <button
+  class="submit-button"
+  type="submit"
+  [disabled]="isLoading()"
+>
+  {{ isLoading() ? 'Signing in…' : 'Sign in' }}
+</button>
+
+@if (errorMessage()) {
+  <p class="error" role="alert">
+    {{ errorMessage() }}
+  </p>
+}
+
+      @if (message()) {
+        <p class="message" role="status">{{ message() }}</p>
+      }
+    </form>
+
+    <p class="register-link">
+      New to Wayfarer?
+      <a routerLink="/register">Create an account</a>
+    </p>
+  </section>
+</main>

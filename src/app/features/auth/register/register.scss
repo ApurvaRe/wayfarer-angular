@@ -1,0 +1,138 @@
+:host {
+  display: block;
+  color: #203e3a;
+  font-family: Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.auth-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #f3f6f1;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px;
+  border: 1px solid #e1e8dd;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 12px 40px #203e3a0d;
+}
+
+.brand {
+  color: #1d6258;
+  font-size: 25px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+h1 {
+  margin: 30px 0 8px;
+  font-size: 28px;
+}
+
+.subtitle {
+  margin: 0 0 28px;
+  color: #738176;
+  line-height: 1.6;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px;
+  border: 1px solid #d7e0d3;
+  border-radius: 7px;
+  font: inherit;
+}
+
+input:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #1d6258;
+  outline-offset: 3px;
+}
+
+input[aria-invalid='true'] {
+  border-color: #b84d3b;
+}
+
+.password-field {
+  position: relative;
+
+  input {
+    padding-right: 68px;
+  }
+}
+
+.toggle {
+  position: absolute;
+  top: 0;
+  right: 10px;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: #1d6258;
+  cursor: pointer;
+}
+
+.error {
+  display: block;
+  margin-top: 7px;
+  color: #b84d3b;
+  font-size: 12px;
+}
+
+.submit-button {
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  border-radius: 7px;
+  background: #1d6258;
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #154d45;
+  }
+}
+
+.message {
+  padding: 12px;
+  border-radius: 6px;
+  background: #edf4e9;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.register-link {
+  margin: 25px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: #738176;
+
+  a {
+    color: #1d6258;
+    font-weight: 600;
+  }
+}
