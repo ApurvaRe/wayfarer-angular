@@ -12,6 +12,9 @@
   </header>
 
   <main>
+    @if (error()) {
+  <p role="alert">{{ error() }}</p>
+}
     @if (selectedDestination(); as destination) {
       <section class="destination-detail page-container">
         <button
@@ -94,7 +97,7 @@
               [ngModel]="category()"
               (ngModelChange)="category.set($event)"
             >
-              @for (item of categories; track item) {
+              @for (item of categories(); track item) {
                 <option [value]="item">{{ item }}</option>
               }
             </select>
