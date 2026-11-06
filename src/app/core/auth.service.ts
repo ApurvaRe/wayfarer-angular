@@ -7,6 +7,7 @@ import {
   loginWithSocial
 } from './firebase';
 import { getCurrentRole } from './user-role';
+import { signOut, getAuth } from 'firebase/auth';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -18,9 +19,10 @@ export class AuthService {
     return registerUser(name, email, password);
   }
 
-  logout() {
-    return logoutUser();
-  }
+  // Use your initialized Firebase Auth instance.
+async logout(): Promise<void> {
+  await signOut(getAuth());
+}
 
   loginSocial(provider: 'google' | 'facebook') {
     return loginWithSocial(provider);

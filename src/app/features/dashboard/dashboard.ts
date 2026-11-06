@@ -3,11 +3,12 @@ import {
   DestroyRef,
   computed,
   inject,
-  signal
+  signal, output, OnInit
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
-
+import { AuthService } from '../../core/auth.service';
+import { getCurrentRole } from '../../core/user-role';
 import {
   DESTINATIONS,
   Destination
@@ -27,9 +28,14 @@ type DisplayDestination = Destination | ManagedDestination;
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
-export class Dashboard {
+export class Dashboard implements OnInit{
+
+   // Controls whether admin actions appear on the dashboard.
+  readonly isAdmin = signal(false);
+
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly auth = inject(AuthService);
 
   readonly query = signal('');
   readonly category = signal('All');
@@ -38,8 +44,6 @@ export class Dashboard {
   readonly destinations =
     signal<DisplayDestination[]>([...DESTINATIONS]);
 
-  readonly selectedDestination =
-    signal<DisplayDestination | null>(null);
 
   readonly categories = computed(() => [
     'All',
@@ -89,6 +93,15 @@ export class Dashboard {
     this.destroyRef.onDestroy(unsubscribe);
   }
 
+    // Reads the admin claim after Firebase restores the login session.
+  async ngOnInit(): Promise<void> {
+    try {
+      this.isAdmin.set((await getCurrentRole()) === 'admin');
+    } catch {
+      this.isAdmin.set(false);
+    }
+  }
+
   selectDestination(destination: DisplayDestination): void {
     void this.router.navigate(['/rooms'], {
       queryParams: {
@@ -97,12 +110,20 @@ export class Dashboard {
     });
   }
 
-  backToDestinations(): void {
-    this.selectedDestination.set(null);
-  }
-
   resetFilters(): void {
     this.query.set('');
     this.category.set('All');
   }
+
+  async logout(): Promise<void> {
+  try {
+    await this.auth.logout();
+
+    await this.router.navigate(['/login'], {
+      replaceUrl: true
+    });
+  } catch (error: unknown) {
+    this.error.set(this.auth.errorMessage(error));
+  }
+}
 }

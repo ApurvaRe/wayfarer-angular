@@ -217,3 +217,8 @@ input[aria-invalid='true'] {
   opacity: 0.6;
   cursor: wait;
 }
+
+.social-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

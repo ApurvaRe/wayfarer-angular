@@ -5,160 +5,126 @@
     </a>
 
     <span class="header-caption">Find your next escape</span>
-
-    <a class="account-link" routerLink="/login">
-      My account
+@if (isAdmin()) {
+  <a class="admin-button" routerLink="/admin">
+    Add Reservations
+  </a>
+}
+    <a class="account-link" (click)="logout()">
+      Logout
     </a>
   </header>
 
   <main>
     @if (error()) {
-  <p role="alert">{{ error() }}</p>
-}
-    @if (selectedDestination(); as destination) {
-      <section class="destination-detail page-container">
-        <button
-          type="button"
-          class="back-button"
-          (click)="backToDestinations()"
-        >
-          ← Back to destinations
-        </button>
+      <p role="alert">{{ error() }}</p>
+    }
 
-        <img
-          class="detail-image"
-          [src]="destination.image"
-          [alt]="destination.name"
-        >
+    <section class="destination-hero page-container">
+      <div class="hero-content">
+        <span class="eyebrow">GO SOMEWHERE EXTRAORDINARY</span>
 
-        <div class="detail-copy">
-          <span class="eyebrow">
-            {{ destination.country }}
-          </span>
+        <h1>Awaken to a<br>different world.</h1>
 
-          <h1>{{ destination.name }}</h1>
+        <p>
+          Beautiful destinations. Memorable stays.
+          Find the place that feels like you.
+        </p>
+      </div>
+    </section>
 
-          <p>{{ destination.description }}</p>
+    <section class="destination-section page-container">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">A WORLD OF POSSIBILITIES</span>
+          <h2>Where would you like to go?</h2>
+          <p>Explore our collection of destinations.</p>
+        </div>
 
-          <h2>Discover the highlights</h2>
+        <span class="result-count" role="status">
+          {{ filteredDestinations().length }} destinations
+        </span>
+      </div>
 
-          <div class="highlight-list">
-            @for (highlight of destination.highlights; track highlight) {
-              <span>{{ highlight }}</span>
+      <div class="destination-search">
+        <label>
+          Search destinations
+          <input
+            type="search"
+            placeholder="Try Bali, Goa, or India"
+            [ngModel]="query()"
+            (ngModelChange)="query.set($event)"
+          >
+        </label>
+
+        <label>
+          Your kind of escape
+          <select
+            [ngModel]="category()"
+            (ngModelChange)="category.set($event)"
+          >
+            @for (item of categories(); track item) {
+              <option [value]="item">{{ item }}</option>
             }
-          </div>
+          </select>
+        </label>
+      </div>
 
-          <p class="detail-note">
-            Room listings for this destination will be connected next.
-          </p>
-        </div>
-      </section>
-    } @else {
-      <section class="destination-hero page-container">
-        <div class="hero-content">
-          <span class="eyebrow">GO SOMEWHERE EXTRAORDINARY</span>
+      <div class="destination-grid">
+        @for (destination of filteredDestinations(); track destination.id) {
+          <button
+            type="button"
+            class="destination-card"
+            (click)="selectDestination(destination)"
+          >
+            <span class="destination-image">
+              <img
+                [src]="destination.image"
+                [alt]="destination.name"
+                loading="lazy"
+              >
 
-          <h1>Awaken to a<br>different world.</h1>
+              <span class="category-badge">
+                {{ destination.category }}
+              </span>
+            </span>
 
-          <p>
-            Beautiful destinations. Memorable stays.
-            Find the place that feels like you.
-          </p>
-        </div>
-      </section>
+            <span class="destination-card-body">
+              <span>
+                <strong>{{ destination.name }}</strong>
 
-      <section class="destination-section page-container">
-        <div class="section-heading">
-          <div>
-            <span class="eyebrow">A WORLD OF POSSIBILITIES</span>
-            <h2>Where would you like to go?</h2>
-            <p>Explore our collection of destinations.</p>
-          </div>
+                <span class="destination-country">
+                  {{ destination.country }}
+                </span>
+              </span>
 
-          <span class="result-count" role="status">
-            {{ filteredDestinations().length }} destinations
-          </span>
-        </div>
+              <span class="card-arrow" aria-hidden="true">↗</span>
+            </span>
+          </button>
+        } @empty {
+          <div class="destination-empty">
+            <h3>No destinations found</h3>
+            <p>Try a different name or category.</p>
 
-        <div class="destination-search">
-          <label>
-            Search destinations
-            <input
-              type="search"
-              placeholder="Try Bali, Goa, or India"
-              [ngModel]="query()"
-              (ngModelChange)="query.set($event)"
-            >
-          </label>
-
-          <label>
-            Your kind of escape
-            <select
-              [ngModel]="category()"
-              (ngModelChange)="category.set($event)"
-            >
-              @for (item of categories(); track item) {
-                <option [value]="item">{{ item }}</option>
-              }
-            </select>
-          </label>
-        </div>
-
-        <div class="destination-grid">
-          @for (destination of filteredDestinations(); track destination.id) {
             <button
               type="button"
-              class="destination-card"
-              (click)="selectDestination(destination)"
+              class="back-button"
+              (click)="resetFilters()"
             >
-              <span class="destination-image">
-                <img
-                  [src]="destination.image"
-                  [alt]="destination.name"
-                  loading="lazy"
-                >
-
-                <span class="category-badge">
-                  {{ destination.category }}
-                </span>
-              </span>
-
-              <span class="destination-card-body">
-                <span>
-                  <strong>{{ destination.name }}</strong>
-                  <span class="destination-country">
-                    {{ destination.country }}
-                  </span>
-                </span>
-
-                <span class="card-arrow" aria-hidden="true">↗</span>
-              </span>
+              Clear filters
             </button>
-          } @empty {
-            <div class="destination-empty">
-              <h3>No destinations found</h3>
-              <p>Try a different name or category.</p>
+          </div>
+        }
+      </div>
+    </section>
 
-              <button
-                type="button"
-                class="back-button"
-                (click)="resetFilters()"
-              >
-                Clear filters
-              </button>
-            </div>
-          }
-        </div>
-      </section>
-
-      <section class="travel-banner page-container">
-        <div>
-          <span class="eyebrow">MAKE TIME FOR SOMETHING NEW</span>
-          <h2>A weekend away.<br>A world of memories.</h2>
-          <p>Your next story starts with a destination.</p>
-        </div>
-      </section>
-    }
+    <section class="travel-banner page-container">
+      <div>
+        <span class="eyebrow">MAKE TIME FOR SOMETHING NEW</span>
+        <h2>A weekend away.<br>A world of memories.</h2>
+        <p>Your next story starts with a destination.</p>
+      </div>
+    </section>
   </main>
 
   <footer class="travel-footer">

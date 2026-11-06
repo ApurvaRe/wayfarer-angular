@@ -9,6 +9,7 @@ import {
   where
 } from 'firebase/firestore';
 import { getDb } from './firebase';
+
 export interface ManagedDestination {
   id: string;
   name: string;
@@ -20,8 +21,16 @@ export interface ManagedDestination {
   isVisible: boolean;
 }
 
+// All destination fields except ID, which is passed separately when saving.
 export type DestinationInput = Omit<ManagedDestination, 'id'>;
 
+/**
+ * Listens for destination changes in Firestore.
+ * When admin is true, requests all destinations; otherwise, only visible ones.
+ * Passes the alphabetically sorted list to next and listener errors to fail.
+ * Returns an unsubscribe function to stop listening when the component is destroyed.
+ * The admin flag selects the query; Firestore rules must enforce authorization.
+ */
 export function watchDestinations(
   admin: boolean,
   next: (destinations: ManagedDestination[]) => void,
@@ -47,6 +56,13 @@ export function watchDestinations(
   );
 }
 
+/**
+ * Validates and cleans destination input, then saves it in a Firestore transaction.
+ * When editing is false, rejects an ID that already exists.
+ * When editing is true, rejects a document that no longer exists.
+ * Replaces the document's fields with the validated data.
+ * Throws an error if validation or the database operation fails.
+ */
 export async function saveDestination(
   id: string,
   input: DestinationInput,
@@ -109,6 +125,11 @@ export async function saveDestination(
   });
 }
 
+/**
+ * Updates only the destination's visibility field.
+ * Pass true to show it in visible-only queries or false to exclude it.
+ * Rejects if the document does not exist or the update fails.
+ */
 export function setDestinationVisibility(
   id: string,
   isVisible: boolean
@@ -116,6 +137,11 @@ export function setDestinationVisibility(
   return updateDoc(doc(getDb(), 'destinations', id), { isVisible });
 }
 
+/**
+ * Deletes the destination document with the given ID from Firestore.
+ * Does not delete related hotels, bookings, or static destination data.
+ * Returns a promise that resolves when the deletion succeeds.
+ */
 export function deleteDestination(id: string): Promise<void> {
   return deleteDoc(doc(getDb(), 'destinations', id));
 }
